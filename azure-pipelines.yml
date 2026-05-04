@@ -2,21 +2,36 @@
 # Build your Java project and run tests with Apache Maven.
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
-
 trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureSubscription: 'Azure-Service-Connection'   # your service connection name
+  appName: 'oribitLanding'                        # your app service name
+  keyVaultName: 'nishalanding'              # your key vault name
 
 steps:
+
+# 🔐 Get secrets from Key Vault
+- task: AzureKeyVault@2
+  inputs:
+    azureSubscription: $(azureSubscription)
+    KeyVaultName: $(keyVaultName)
+    SecretsFilter: '*'
+    RunAsPreJob: true
+
+# ⚙️ Build project (Java)
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.11'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
+
+# 🚀 Deploy to Azure App Service
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: $(azureSubscription)
+    appName: $(appName)
+    package: '$(System.DefaultWorkingDirectory)/**/*.jar'
