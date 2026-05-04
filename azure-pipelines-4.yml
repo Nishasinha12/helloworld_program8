@@ -8,11 +8,12 @@ trigger:
 
 pool:
   vmImage: 'ubuntu-latest'
+  name: 'nishapool'
 
 variables:
   azureSubscription: 'azureServer'     # ✅ your service connection
   appName: 'oribitLanding'              # ⚠️ change if different
-  keyVaultName: 'nishalanding'           # ⚠️ change if different
+            # ⚠️ change if different
 
 
 steps:
