@@ -1,0 +1,38 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureSubscription: 'azureServer'     # ✅ your service connection
+  appName: 'oribitLanding'              # ⚠️ change if different
+  keyVaultName: 'nishalanding'           # ⚠️ change if different
+
+steps:
+
+# 🔐 Get secrets from Key Vault
+- task: AzureKeyVault@2
+  inputs:
+    azureSubscription: $(azureSubscription)
+    KeyVaultName: $(keyVaultName)
+    SecretsFilter: '*'
+    RunAsPreJob: true
+
+# ⚙️ Build using Maven
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    goals: 'package'
+
+# 🚀 Deploy to Azure App Service
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: $(azureSubscription)
+    appName: $(appName)
+    package: '$(System.DefaultWorkingDirectory)/**/*.jar'
